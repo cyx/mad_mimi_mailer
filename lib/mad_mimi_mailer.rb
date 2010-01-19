@@ -60,6 +60,8 @@ class MadMimiMailer < ActionMailer::Base
         else
           super
         end
+      else
+        super
       end
     end
 
@@ -143,10 +145,9 @@ class MadMimiMailer < ActionMailer::Base
   
     def deliver_using_mimi?
       ActionMailer::Base.delivery_method == :mad_mimi or 
-      ActionMailer::Base.delivery_method == :test or 
       delivery_method_and_settings_unset?
     end
-
+  
     def delivery_method_and_settings_unset?
       ActionMailer::Base.delivery_method == :smtp &&
       ActionMailer::Base.smtp_settings == rails_default_smtp_settings

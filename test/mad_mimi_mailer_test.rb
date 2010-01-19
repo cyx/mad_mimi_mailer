@@ -225,6 +225,6 @@ class TestMadMimiMailer < Test::Unit::TestCase
     ActionMailer::Base.delivery_method = :smtp
 
     assert_equal 1, ActionMailer::Base.deliveries.size
-    assert_equal "MadMimiMailer", ActionMailer::Base.deliveries.last.class.name
+    assert_equal 'welcome to mad mimi', ActionMailer::Base.deliveries.last.subject
   end
 end
