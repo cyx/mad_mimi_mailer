@@ -9,7 +9,7 @@ class MadMimiMailer < ActionMailer::Base
   @@api_settings = {}
   cattr_accessor :api_settings
   
-  @@defaults = { :use_erb => true }
+  @@defaults = { :use_erb => false }
   cattr_accessor :defaults
   
   @@rails_default_smtp_settings = {

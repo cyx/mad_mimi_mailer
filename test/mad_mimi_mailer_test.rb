@@ -27,31 +27,30 @@ class MadMimiMailer
     from "dave@obtiva.com"
     bcc ["Gregg Pollack <gregg@example.com>", "David Clymer <david@example>"]
     body :message => greeting
-    use_erb false
   end
 
   def hello_erb(greeting)
     subject greeting
     recipients "tyler@obtiva.com"
     from "dave@obtiva.com"
-    # promotion "w00t"
     body :message => greeting
+    use_erb true
   end
 
   def multipart_hello_erb(greeting)
     subject greeting
     recipients "sandro@hashrocket.com"
     from "stephen@hashrocket.com"
-    # promotion "w00t"
     body :message => greeting
+    use_erb true
   end
 
   def bye_erb(greeting)
     subject greeting
     recipients "tyler@obtiva.com"
     from "dave@obtiva.com"
-    # promotion "w00t"
     body :message => greeting
+    use_erb true
   end
 
   def hello_sans_bcc(greeting)
@@ -59,7 +58,6 @@ class MadMimiMailer
     recipients "tyler@obtiva.com"
     from "dave@obtiva.com"
     body :message => greeting
-    use_erb false
   end
 end
 
