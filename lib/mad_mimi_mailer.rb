@@ -8,6 +8,20 @@ class MadMimiMailer < ActionMailer::Base
 
   @@api_settings = {}
   cattr_accessor :api_settings
+  
+  @@defaults = { :use_erb => true }
+  cattr_accessor :defaults
+  
+  @@rails_default_smtp_settings = {
+    :address              => "localhost",
+    :port                 => 25,
+    :domain               => 'localhost.localdomain',
+    :user_name            => nil,
+    :password             => nil,
+    :authentication       => nil,
+    :enable_starttls_auto => true,
+  }
+  cattr_accessor :rails_default_smtp_settings
 
   # Custom Mailer attributes
 
@@ -16,6 +30,7 @@ class MadMimiMailer < ActionMailer::Base
       @promotion
     else
       @promotion = promotion
+      @use_erb   = false
     end
   end
 
@@ -38,20 +53,30 @@ class MadMimiMailer < ActionMailer::Base
   # Class methods
 
   class << self
-
     def method_missing(method_symbol, *parameters)
-      if method_symbol.id2name.match(/^deliver_(mimi_[_a-z]\w*)/)
-        deliver_mimi_mail($1, *parameters)
-      else
-        super
+      if deliver_using_mimi? 
+        if method_symbol.id2name.match(/^deliver_([_a-z]\w*)/)
+          deliver_mimi_mail($1, *parameters)
+        else
+          super
+        end
       end
     end
 
     def deliver_mimi_mail(method, *parameters)
       mail = new
       mail.__send__(method, *parameters)
-
-      if mail.use_erb
+  
+      # BOOLEAN TABLE: 
+      # instance level     class level     result
+      # use_erb            use_erb
+      # T                  T               T
+      # T                  F               T
+      # F                  T               F
+      # F                  F               F
+      # nil                T               T
+      # nil                F               F
+      if will_use_erb?(mail)
         mail.create!(method, *parameters)
       end
 
@@ -68,7 +93,7 @@ class MadMimiMailer < ActionMailer::Base
       params = {
         'username' => api_settings[:username],
         'api_key' =>  api_settings[:api_key],
-        'promotion_name' => mail.promotion || method.to_s.sub(/^mimi_/, ''),
+        'promotion_name' => mail.promotion,
         'recipients' =>     serialize(mail.recipients),
         'subject' =>        mail.subject,
         'bcc' =>            serialize(mail.bcc),
@@ -76,7 +101,7 @@ class MadMimiMailer < ActionMailer::Base
         'hidden' =>         serialize(mail.hidden)
       }
 
-      if mail.use_erb
+      if will_use_erb?(mail)
         if mail.parts.any?
           params['raw_plain_text'] = content_for(mail, "text/plain")
           params['raw_html'] = content_for(mail, "text/html") { |html| validate(html.body) }
@@ -107,7 +132,22 @@ class MadMimiMailer < ActionMailer::Base
         part.body
       end
     end
+  
+    def deliver_using_mimi?
+      ActionMailer::Base.delivery_method == :mad_mimi or 
+      ActionMailer::Base.delivery_method == :test or 
+      delivery_method_and_settings_unset?
+    end
+
+    def delivery_method_and_settings_unset?
+      ActionMailer::Base.delivery_method == :smtp &&
+      ActionMailer::Base.smtp_settings == rails_default_smtp_settings
+    end
     
+    def will_use_erb?( mail )
+      mail.use_erb == true || (mail.use_erb.nil? && MadMimiMailer.defaults[:use_erb])
+    end
+
     def validate(content)
       unless content.include?("[[peek_image]]") || content.include?("[[tracking_beacon]]")
         raise ValidationError, "You must include a web beacon in your Mimi email: [[peek_image]]"

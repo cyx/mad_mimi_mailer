@@ -2,7 +2,7 @@ require "rubygems"
 require "test/unit"
 require "mocha"
 
-require "mad_mimi_mailer"
+require File.dirname(__FILE__) + '/../lib/mad_mimi_mailer'
 
 MadMimiMailer.api_settings = {
   :username => "testy@mctestin.com",
@@ -11,8 +11,8 @@ MadMimiMailer.api_settings = {
 
 class MadMimiMailer
   self.template_root = File.dirname(__FILE__) + '/templates/'
-
-  def mimi_hola(greeting)
+  
+  def hola(greeting)
     subject greeting
     recipients "tyler@obtiva.com"
     from "dave@obtiva.com"
@@ -21,46 +21,45 @@ class MadMimiMailer
     body :message => greeting
   end
 
-  def mimi_hello(greeting)
+  def hello(greeting)
     subject greeting
     recipients "tyler@obtiva.com"
     from "dave@obtiva.com"
     bcc ["Gregg Pollack <gregg@example.com>", "David Clymer <david@example>"]
     body :message => greeting
+    use_erb false
   end
 
-  def mimi_hello_erb(greeting)
+  def hello_erb(greeting)
     subject greeting
     recipients "tyler@obtiva.com"
     from "dave@obtiva.com"
-    promotion "w00t"
-    use_erb true
+    # promotion "w00t"
     body :message => greeting
   end
 
-  def mimi_multipart_hello_erb(greeting)
+  def multipart_hello_erb(greeting)
     subject greeting
     recipients "sandro@hashrocket.com"
     from "stephen@hashrocket.com"
-    promotion "w00t"
-    use_erb true
+    # promotion "w00t"
     body :message => greeting
   end
 
-  def mimi_bye_erb(greeting)
+  def bye_erb(greeting)
     subject greeting
     recipients "tyler@obtiva.com"
     from "dave@obtiva.com"
-    promotion "w00t"
-    use_erb true
+    # promotion "w00t"
     body :message => greeting
   end
 
-  def mimi_hello_sans_bcc(greeting)
+  def hello_sans_bcc(greeting)
     subject greeting
     recipients "tyler@obtiva.com"
     from "dave@obtiva.com"
     body :message => greeting
+    use_erb false
   end
 end
 
@@ -87,7 +86,7 @@ class TestMadMimiMailer < Test::Unit::TestCase
     response.stubs(:body).returns("123435")
     MadMimiMailer.expects(:post_request).yields(mock_request).returns(response)
 
-    MadMimiMailer.deliver_mimi_hola("welcome to mad mimi")
+    MadMimiMailer.deliver_hola("welcome to mad mimi")
   end
 
   def test_happy_path
@@ -95,7 +94,7 @@ class TestMadMimiMailer < Test::Unit::TestCase
     mock_request.expects(:set_form_data).with(
       'username' => "testy@mctestin.com",
       'api_key' =>  "w00tb4r",
-      'promotion_name' => "hello",
+      'promotion_name' => nil, # "hello",
       'recipients' =>     "tyler@obtiva.com",
       'subject' =>        "welcome to mad mimi",
       'bcc' =>            "Gregg Pollack <gregg@example.com>, David Clymer <david@example>",
@@ -107,7 +106,7 @@ class TestMadMimiMailer < Test::Unit::TestCase
     response.stubs(:body).returns("123435")
     MadMimiMailer.expects(:post_request).yields(mock_request).returns(response)
 
-    promotion_attempt_id = MadMimiMailer.deliver_mimi_hello("welcome to mad mimi")
+    promotion_attempt_id = MadMimiMailer.deliver_hello("welcome to mad mimi")
     assert_equal "123435", promotion_attempt_id
   end
 
@@ -116,7 +115,7 @@ class TestMadMimiMailer < Test::Unit::TestCase
     mock_request.expects(:set_form_data).with(
       'username' => "testy@mctestin.com",
       'api_key' =>  "w00tb4r",
-      'promotion_name' => "hello_sans_bcc",
+      'promotion_name' => nil, #"hello_sans_bcc",
       'recipients' =>     "tyler@obtiva.com",
       'bcc' =>            nil,
       'subject' =>        "welcome to mad mimi",
@@ -128,7 +127,7 @@ class TestMadMimiMailer < Test::Unit::TestCase
     response.stubs(:body).returns("123435")
     MadMimiMailer.expects(:post_request).yields(mock_request).returns(response)
 
-    MadMimiMailer.deliver_mimi_hello_sans_bcc("welcome to mad mimi")
+    MadMimiMailer.deliver_hello_sans_bcc("welcome to mad mimi")
   end
 
   def test_erb_render
@@ -136,7 +135,7 @@ class TestMadMimiMailer < Test::Unit::TestCase
     mock_request.expects(:set_form_data).with(
       'username' => "testy@mctestin.com",
       'api_key' =>  "w00tb4r",
-      'promotion_name' => "w00t",
+      'promotion_name' => nil, # "w00t",
       'recipients' =>     "tyler@obtiva.com",
       'bcc' =>            nil,
       'subject' =>        "welcome to mad mimi",
@@ -148,7 +147,7 @@ class TestMadMimiMailer < Test::Unit::TestCase
     response.stubs(:body).returns("123435")
     MadMimiMailer.expects(:post_request).yields(mock_request).returns(response)
 
-    MadMimiMailer.deliver_mimi_hello_erb("welcome to mad mimi")
+    MadMimiMailer.deliver_hello_erb("welcome to mad mimi")
   end
 
   def test_multipart_erb_render
@@ -156,7 +155,7 @@ class TestMadMimiMailer < Test::Unit::TestCase
     mock_request.expects(:set_form_data).with(
       'username' => "testy@mctestin.com",
       'api_key' =>  "w00tb4r",
-      'promotion_name' => 'w00t',
+      'promotion_name' => nil, # 'w00t',
       'recipients' =>     "sandro@hashrocket.com",
       'bcc' =>            nil,
       'subject' =>        "welcome to mad mimi",
@@ -169,12 +168,12 @@ class TestMadMimiMailer < Test::Unit::TestCase
     response.stubs(:body).returns("123435")
     MadMimiMailer.expects(:post_request).yields(mock_request).returns(response)
 
-    MadMimiMailer.deliver_mimi_multipart_hello_erb("welcome to mad mimi")
+    MadMimiMailer.deliver_multipart_hello_erb("welcome to mad mimi")
   end
 
   def test_deliveries_contain_tmail_objects_when_use_erb_in_test_mode
     ActionMailer::Base.delivery_method = :test
-    MadMimiMailer.deliver_mimi_multipart_hello_erb("welcome to mad mimi")
+    MadMimiMailer.deliver_multipart_hello_erb("welcome to mad mimi")
     ActionMailer::Base.delivery_method = :smtp
 
     assert ActionMailer::Base.deliveries.all?{|m| m.kind_of?(TMail::Mail)}
@@ -182,7 +181,7 @@ class TestMadMimiMailer < Test::Unit::TestCase
 
   def test_erb_render_fails_without_peek_image
     assert_raise MadMimiMailer::ValidationError do
-      MadMimiMailer.deliver_mimi_bye_erb("welcome to mad mimi")
+      MadMimiMailer.deliver_bye_erb("welcome to mad mimi")
     end
   end
 
@@ -194,7 +193,7 @@ class TestMadMimiMailer < Test::Unit::TestCase
     MadMimiMailer.expects(:post_request).yields(mock_request).returns(response)
 
     assert_raise(Net::HTTPServerException) do
-      MadMimiMailer.deliver_mimi_hello("welcome to mad mimi")
+      MadMimiMailer.deliver_hello("welcome to mad mimi")
     end
   end
 
@@ -206,7 +205,7 @@ class TestMadMimiMailer < Test::Unit::TestCase
     MadMimiMailer.expects(:post_request).yields(mock_request).returns(response)
 
     assert_raise(Net::HTTPServerException) do
-      MadMimiMailer.deliver_mimi_hello("welcome to mad mimi")
+      MadMimiMailer.deliver_hello("welcome to mad mimi")
     end
   end
 
@@ -218,13 +217,13 @@ class TestMadMimiMailer < Test::Unit::TestCase
     MadMimiMailer.expects(:post_request).yields(mock_request).returns(response)
 
     assert_raise(Net::HTTPServerException) do
-      MadMimiMailer.deliver_mimi_hello("welcome to mad mimi")
+      MadMimiMailer.deliver_hello("welcome to mad mimi")
     end
   end
 
   def test_assert_mail_sent
     ActionMailer::Base.delivery_method = :test
-    MadMimiMailer.deliver_mimi_hello("welcome to mad mimi")
+    MadMimiMailer.deliver_hello("welcome to mad mimi")
     ActionMailer::Base.delivery_method = :smtp
 
     assert_equal 1, ActionMailer::Base.deliveries.size
