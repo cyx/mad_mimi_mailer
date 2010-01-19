@@ -8,7 +8,7 @@ This fork was made to address the following needs:
 
 1. Invisibility
 2. Unobtrusiveness
-3. <Insert some dire need here>
+3. &lt;Insert some dire need here&gt;
   
 Invisibility
 ------------
