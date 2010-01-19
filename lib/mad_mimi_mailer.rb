@@ -93,7 +93,7 @@ class MadMimiMailer < ActionMailer::Base
       params = {
         'username' => api_settings[:username],
         'api_key' =>  api_settings[:api_key],
-        'promotion_name' => mail.promotion,
+        'promotion_name' => promotion_name_for(mail, method),
         'recipients' =>     serialize(mail.recipients),
         'subject' =>        mail.subject,
         'bcc' =>            serialize(mail.bcc),
@@ -123,6 +123,14 @@ class MadMimiMailer < ActionMailer::Base
       else
         response.error!
       end
+    end
+    
+    def promotion_name_for(mail, method)
+      will_use_erb?(mail) ? nil : mail.promotion || guess_promotion_for(method)
+    end
+
+    def guess_promotion_for( method )
+      "#{self.name.demodulize.underscore}_#{method}"
     end
 
     def content_for(mail, content_type)

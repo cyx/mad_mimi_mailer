@@ -94,7 +94,7 @@ class TestMadMimiMailer < Test::Unit::TestCase
     mock_request.expects(:set_form_data).with(
       'username' => "testy@mctestin.com",
       'api_key' =>  "w00tb4r",
-      'promotion_name' => nil, # "hello",
+      'promotion_name' => "mad_mimi_mailer_hello",
       'recipients' =>     "tyler@obtiva.com",
       'subject' =>        "welcome to mad mimi",
       'bcc' =>            "Gregg Pollack <gregg@example.com>, David Clymer <david@example>",
@@ -115,7 +115,7 @@ class TestMadMimiMailer < Test::Unit::TestCase
     mock_request.expects(:set_form_data).with(
       'username' => "testy@mctestin.com",
       'api_key' =>  "w00tb4r",
-      'promotion_name' => nil, #"hello_sans_bcc",
+      'promotion_name' => "mad_mimi_mailer_hello_sans_bcc",
       'recipients' =>     "tyler@obtiva.com",
       'bcc' =>            nil,
       'subject' =>        "welcome to mad mimi",
